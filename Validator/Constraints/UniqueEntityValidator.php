@@ -31,13 +31,6 @@ class UniqueEntityValidator extends BaseValidator
      */
     public function validate($entity, Constraint $constraint)
     {
-        $violations = $this->context->getViolations();
-        foreach ($violations as $violation) {
-            if ($violation->getPropertyPath() == 'data.' . $constraint->fields) {
-                return;
-            }
-        }
-
         if (!is_array($constraint->fields) && !is_string($constraint->fields)) {
             throw new UnexpectedTypeException($constraint->fields, 'array');
         }
@@ -50,6 +43,15 @@ class UniqueEntityValidator extends BaseValidator
 
         if (0 === count($fields)) {
             throw new ConstraintDefinitionException('At least one field has to be specified.');
+        }
+
+        $violations = $this->context->getViolations();
+        foreach ($violations as $violation) {
+            foreach ($fields as $field) {
+                if ($violation->getPropertyPath() == 'data.' . $field) {
+                    return;
+                }
+            }
         }
 
         if ($constraint->em) {
